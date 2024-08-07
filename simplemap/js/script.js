@@ -1,5 +1,6 @@
 
 //test if browser supports webGL
+mapboxgl.accessToken = 'pk.eyJ1IjoiYXJpZnNoZWhhYiIsImEiOiJjbHl5YTgxd3YyYmlrMmpvaWx6NnR5cHBxIn0.Lyquz6Fn-AxZX9p9q9BS6Q';
 
 if(Modernizr.webgl) {
 
@@ -8,9 +9,9 @@ if(Modernizr.webgl) {
 
 	//Load data and config file
 	d3.queue()
-		.defer(d3.csv, "data/data.csv")
+		.defer(d3.csv, "data/2020data.csv")
 		.defer(d3.json, "data/config.json")
-		.defer(d3.json, "data/geog.json")
+		.defer(d3.json, "data/2020geog.geojson")
 		.await(ready);
 
 
@@ -24,9 +25,9 @@ if(Modernizr.webgl) {
 
 		//Get column names
 		variable = null;
+		console.log(Object.keys(data[0]));
 		for (var column in data[0]) {
 			if (column == 'AREACD') continue;
-			if (column == 'AREANM') continue;
 			variable = column;
 		}
 
@@ -45,10 +46,10 @@ if(Modernizr.webgl) {
 		map = new mapboxgl.Map({
 		  container: 'map', // container id
 		  style: 'data/style.json', //stylesheet location //includes key for API
-		  center: [-2.5, 54], // starting position
-		  minZoom: 3.5,//
+		  center: [103.93026636539048, 1.367234923491793], // starting position
+		  minZoom: 1,//
 		  zoom: 4.5, // starting zoom
-		  maxZoom: 13, //
+		  maxZoom: 20, //
 		  attributionControl: false //
 		});
 		//add fullscreen option
@@ -70,10 +71,10 @@ if(Modernizr.webgl) {
 			}
 		}));
 
-		//add compact attribution
+		/*add compact attribution
 		map.addControl(new mapboxgl.AttributionControl({
 			compact: true
-		}));
+		})); */
 
 		// if touch screen, disable stuff
 		if ($('html').hasClass('touch')) {
@@ -93,10 +94,8 @@ if(Modernizr.webgl) {
 		//now ranges are set we can call draw the key
 		createKey(config);
 
-		//convert topojson to geojson
-		for(key in geog.objects){
-			var areas = topojson.feature(geog, geog.objects[key])
-		}
+		var areas = geog;
+		console.log(areas);
 
 		//Work out extend of loaded geography file so we can set map to fit total extent
 		bounds = turf.extent(areas);
@@ -112,7 +111,7 @@ if(Modernizr.webgl) {
 		areas.features.map(function(d,i) {
 		  if(!isNaN(rateById[d.properties.AREACD]))
 		  	{d.properties.fill = color(rateById[d.properties.AREACD])}
-		  else {d.properties.fill = '#ccc'};
+		  else {d.properties.fill = '#e1e1e1'};
 		});
 
 		map.on('load', defineLayers);
@@ -126,7 +125,7 @@ if(Modernizr.webgl) {
 
 			data.forEach(function(d) {
 				rateById[d.AREACD] = +d[variable];
-				areaById[d.AREACD] = d.AREANM
+				areaById[d.AREACD] = d.AREACD
 			}); //change to brackets
 
 
@@ -134,6 +133,8 @@ if(Modernizr.webgl) {
 			if(config.ons.breaks =="jenks" || config.ons.breaks =="equal") {
 				var values =  data.map(function(d) { return +d[variable]; }).filter(function(d) {return !isNaN(d)}).sort(d3.ascending);
 			};
+
+			console.log(values);
 
 			if(config.ons.breaks =="jenks") {
 				breaks = [];
@@ -190,20 +191,16 @@ if(Modernizr.webgl) {
 				  'source': 'area',
 				  'touchAction':'none',
 				  'layout': {},
+				  'maxzoom' : 15,
 				  'paint': {
 					  'fill-color': {
 							type: 'identity',
 							property: 'fill'
 					   },
 					  'fill-opacity': dvc.fillOpacity,
-					  'fill-outline-color': '#fff'
+					  'fill-outline-color': '#000'
 				  }
-			  }, 'place_city');
-
-			//Get current year for copyright
-			today = new Date();
-			copyYear = today.getFullYear();
-			map.style.sourceCaches['area']._source.attribution = "Contains OS data &copy; Crown copyright and database right " + copyYear;
+			  }, 'settlement-major-label');
 
 			map.addLayer({
 				"id": "state-fills-hover",
@@ -211,11 +208,11 @@ if(Modernizr.webgl) {
 				"source": "area",
 				"layout": {},
 				"paint": {
-					"line-color": "#000",
+					"line-color": "#44418b",
 					"line-width": 2
 				},
 				"filter": ["==", "AREACD", ""]
-			}, 'place_city');
+			}, 'settlement-major-label');
 
 			  map.addLayer({
 				  'id': 'area_labels',
@@ -223,7 +220,7 @@ if(Modernizr.webgl) {
 				  'source': 'area',
 				  'minzoom': 10,
 				  'layout': {
-					  "text-field": '{AREANM}',
+					  "text-field": '{AREACD}',
 					  "text-font": ["Open Sans","Arial Unicode MS Regular"],
 					  "text-size": 14
 				  },
@@ -549,7 +546,7 @@ if(Modernizr.webgl) {
 			}
 
 			//label the units
-			d3.select("#keydiv").append("p").attr("id","keyunit").attr('aria-hidden',true).style("margin-top","-10px").style("margin-left","10px").style('font-size','14px').text(dvc.varunit);
+			d3.select("#keydiv").append("p").attr("id","keyunit").attr('aria-hidden',true).style("margin-top","-10px").style("margin-left","10px").style('font-size','14px').text(variable);
 
 	} // Ends create key
 
@@ -633,7 +630,7 @@ if(Modernizr.webgl) {
 		function selectlist(datacsv) {
 
 			var areacodes =  datacsv.map(function(d) { return d.AREACD; });
-			var areanames =  datacsv.map(function(d) { return d.AREANM; });
+			var areanames =  datacsv.map(function(d) { return d.AREACD; });
 			var menuarea = d3.zip(areanames,areacodes).sort(function(a, b){ return d3.ascending(a[0], b[0]); });
 
 			// Build option menu for occupations

@@ -25,7 +25,6 @@ if(Modernizr.webgl) {
 		variables = [];
 		for (var column in data[0]) {
 			if (column == 'AREACD') continue;
-			if (column == 'AREANM') continue;
 			variables.push(column);
 		}
 
@@ -55,7 +54,7 @@ if(Modernizr.webgl) {
 		map = new mapboxgl.Map({
 		  container: 'map', // container id
 		  style: 'data/style.json', //stylesheet location //includes key for API
-		  center: [-2.5, 54], // starting position
+		  center: [103, 1.3], // starting position
 		  minZoom: 3.5,//
 		  zoom: 4.5, // starting zoom
 		  maxZoom: 13, //
@@ -223,7 +222,7 @@ if(Modernizr.webgl) {
 			rateById = {};
 			areaById = {};
 
-			data.forEach(function(d) {rateById[d.AREACD] = +d[variables[a]]; areaById[d.AREACD] = d.AREANM}); //change to brackets
+			data.forEach(function(d) {rateById[d.AREACD] = +d[variables[a]]; areaById[d.AREACD] = d.AREACD}); //change to brackets
 
 
 			//Flatten data values and work out breaks
@@ -302,11 +301,6 @@ if(Modernizr.webgl) {
 				  }
 			  }, 'place_city');
 
-			//Get current year for copyright
-			today = new Date();
-			copyYear = today.getFullYear();
-			map.style.sourceCaches['area']._source.attribution = "Contains OS data &copy; Crown copyright and database right " + copyYear;
-
 			map.addLayer({
 				"id": "state-fills-hover",
 				"type": "line",
@@ -325,7 +319,7 @@ if(Modernizr.webgl) {
 				  'source': 'area',
 				  'minzoom': 10,
 				  'layout': {
-					  "text-field": '{AREANM}',
+					  "text-field": '{AREACD}',
 					  "text-font": ["Open Sans","Arial Unicode MS Regular"],
 					  "text-size": 16
 				  },
@@ -841,7 +835,7 @@ d3.select("#key").attr("class","c1")
 		function selectlist(datacsv) {
 
 			var areacodes =  datacsv.map(function(d) { return d.AREACD; });
-			var areanames =  datacsv.map(function(d) { return d.AREANM; });
+			var areanames =  datacsv.map(function(d) { return d.AREACD; });
 			var menuarea = d3.zip(areanames,areacodes).sort(function(a, b){ return d3.ascending(a[0], b[0]); });
 
 			// Build option menu for occupations
