@@ -1,4 +1,5 @@
 //test if browser supports webGL
+mapboxgl.accessToken = 'pk.eyJ1IjoiYXJpZnNoZWhhYiIsImEiOiJjbHl5YTgxd3YyYmlrMmpvaWx6NnR5cHBxIn0.Lyquz6Fn-AxZX9p9q9BS6Q';
 
 if(Modernizr.webgl) {
 
@@ -9,7 +10,7 @@ if(Modernizr.webgl) {
 	d3.queue()
 		.defer(d3.csv, "data/data.csv")
 		.defer(d3.json, "data/config.json")
-		.defer(d3.json, "data/geog.json")
+		.defer(d3.json, "data/geog.geojson")
 		.await(ready);
 
 
@@ -28,16 +29,15 @@ if(Modernizr.webgl) {
 			variables.push(column);
 		}
 
-
+		console.log(variables);
 
 
 		a = dvc.varload;
 
 
 		//BuildNavigation
-		if(dvc.varlabels.length > 1)	{
-			buildNav();
-		}
+		buildNav();
+		
 		//set title of page
 		//Need to test that this shows up in GA
 		document.title = dvc.maptitle;
@@ -55,9 +55,9 @@ if(Modernizr.webgl) {
 		  container: 'map', // container id
 		  style: 'data/style.json', //stylesheet location //includes key for API
 		  center: [103, 1.3], // starting position
-		  minZoom: 3.5,//
-		  zoom: 4.5, // starting zoom
-		  maxZoom: 13, //
+		  minZoom: 1,//
+		  zoom: 6, // starting zoom
+		  maxZoom: 24, //
 		  attributionControl: false //
 		});
 		//add fullscreen option
@@ -96,10 +96,8 @@ if(Modernizr.webgl) {
 		//now ranges are set we can call draw the key
 		createKey(config);
 
-		//convert topojson to geojson
-		for(key in geog.objects){
-			var areas = topojson.feature(geog, geog.objects[key])
-		}
+		
+		var areas = geog;
 
 		//Work out extend of loaded geography file so we can set map to fit total extent
 		bounds = turf.extent(areas);
@@ -145,7 +143,7 @@ if(Modernizr.webgl) {
 			.attr('class','grid grid--full large-grid--fit');
 
 			cell=grid.selectAll('div')
-			.data(dvc.varlabels)
+			.data(variables)
 			.enter()
 			.append('div')
 			.attr('class','grid-cell');
@@ -164,11 +162,11 @@ if(Modernizr.webgl) {
 
 			d3.selectAll('input[type="radio"]').on('change', function(d) {
 				onchange(document.querySelector('input[name="button"]:checked').value);
-				d3.select('#selected').text(dvc.varlabels[document.querySelector('input[name="button"]:checked').value] + " is selected");
+				d3.select('#selected').text(variables[document.querySelector('input[name="button"]:checked').value] + " is selected");
 			});
 
 			d3.select('#button'+dvc.varload).property('checked',true);
-			d3.select('#selected').text(dvc.varlabels[document.querySelector('input[name="button"]:checked').value] + " is selected");
+			d3.select('#selected').text(variables[document.querySelector('input[name="button"]:checked').value] + " is selected");
 
 		// formgroup = d3.select('#nav')
 		// 			.append('form')
@@ -207,12 +205,12 @@ if(Modernizr.webgl) {
 						.attr('id','dropdown')
 						.on('change', onselect)
 						.selectAll("option")
-						.data(dvc.varlabels)
+						.data(variables)
 						.enter()
 						.append('option')
 						.attr("value", function(d,i){return i})
 						.property("selected", function(d, i) {return i===dvc.varload;})
-						.text(function(d,i){return dvc.varlabels[i]});
+						.text(function(d,i){return variables[i]});
 
 
 		}
@@ -229,6 +227,8 @@ if(Modernizr.webgl) {
 			if(config.ons.breaks[a] =="jenks" || config.ons.breaks[a] =="equal") {
 				var values =  data.map(function(d) { return +d[variables[a]]; }).filter(function(d) {return !isNaN(d)}).sort(d3.ascending);
 			};
+
+			console.log(values);
 
 			if(config.ons.breaks[a] =="jenks") {
 				breaks = [];
@@ -250,7 +250,7 @@ if(Modernizr.webgl) {
 			}
 			else {breaks = config.ons.breaks[a];};
 
-//console.log(breaks);
+			console.log(breaks);
 			//round breaks to specified decimal places
 			breaks = breaks.map(function(each_element){
 				return Number(each_element.toFixed(dvc.legenddecimals));
@@ -299,7 +299,7 @@ if(Modernizr.webgl) {
 					  'fill-opacity': 0.8,
 					  'fill-outline-color': '#fff'
 				  }
-			  }, 'place_city');
+			  }, 'state-label');
 
 			map.addLayer({
 				"id": "state-fills-hover",
@@ -311,7 +311,7 @@ if(Modernizr.webgl) {
 					"line-width": 2
 				},
 				"filter": ["==", "AREACD", ""]
-			}, 'place_city');
+			}, 'state-label');
 
 			  map.addLayer({
 				  'id': 'area_labels',
@@ -546,7 +546,7 @@ if(Modernizr.webgl) {
 
 
 			d3.select("#currVal")
-				.text(function(){if(!isNaN(rateById[code]))  {return displayformat(rateById[code])+"%"} else {return "Data unavailable"}})
+				.text(function(){if(!isNaN(rateById[code]))  {return displayformat(rateById[code])} else {return "Data unavailable"}})
 				.style("opacity",1)
 				.transition()
 				.duration(400)
@@ -688,7 +688,6 @@ if(Modernizr.webgl) {
 				.attr("x","9")
 				.attr("y","27")
 				.style("text-anchor","start")
-				.text("%")
 
 				// d3.selectAll("#currVal")
 				// .append("text")
