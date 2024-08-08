@@ -25,7 +25,7 @@ if(Modernizr.webgl) {
 
 		//Get column names
 		variable = null;
-		console.log(Object.keys(data[0]));
+		//console.log(Object.keys(data[0]));
 		for (var column in data[0]) {
 			if (column == 'AREACD') continue;
 			variable = column;
@@ -95,8 +95,6 @@ if(Modernizr.webgl) {
 		createKey(config);
 
 		var areas = geog;
-		console.log(areas);
-
 		//Work out extend of loaded geography file so we can set map to fit total extent
 		bounds = turf.extent(areas);
 
@@ -133,8 +131,6 @@ if(Modernizr.webgl) {
 			if(config.ons.breaks =="jenks" || config.ons.breaks =="equal") {
 				var values =  data.map(function(d) { return +d[variable]; }).filter(function(d) {return !isNaN(d)}).sort(d3.ascending);
 			};
-
-			console.log(values);
 
 			if(config.ons.breaks =="jenks") {
 				breaks = [];
@@ -341,6 +337,7 @@ if(Modernizr.webgl) {
 
 					selectArea(e.features[0].properties.AREACD);
 					setAxisVal(e.features[0].properties.AREACD);
+					console.log("z");
 				}
 		};
 
@@ -357,13 +354,15 @@ if(Modernizr.webgl) {
 				disableMouseEvents();
 				newAREACD = e.features[0].properties.AREACD;
 
-				if(newAREACD != oldAREACD) {
+				//if(newAREACD != oldAREACD) {
 					oldAREACD = e.features[0].properties.AREACD;
 					map.setFilter("state-fills-hover", ["==", "AREACD", e.features[0].properties.AREACD]);
 
 					selectArea(e.features[0].properties.AREACD);
 					setAxisVal(e.features[0].properties.AREACD);
-				}
+					zoomToArea(e.features[0].properties.AREACD);
+					
+				//} 
 		};
 
 		function disableMouseEvents() {
@@ -400,7 +399,8 @@ if(Modernizr.webgl) {
 			specific = turf.extent(specificpolygon[0].geometry);
 
 			map.fitBounds([[specific[0],specific[1]], [specific[2], specific[3]]], {
-  				padding: {top: 150, bottom:150, left: 100, right: 100}
+  				padding: {top: 150, bottom:150, left: 100, right: 100},
+				duration: 1000
 			});
 
 		}
@@ -623,8 +623,6 @@ if(Modernizr.webgl) {
 
 	  selectArea(features[0].properties.AREACD);
 	  setAxisVal(features[0].properties.AREACD);
-
-
 	};
 
 		function selectlist(datacsv) {
