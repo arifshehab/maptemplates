@@ -1,6 +1,6 @@
 {"ons":{
-"maptitle": "Map about...",
-"varcolour": "YlGnBu",
+"maptitle": "Electoral Boundaries",
+"varcolour": ["#e1fcf8", "#9ccad5", "#5e99af", "#136a85", "#003b55"],
 "varunit": "",
 "displaydecimals": 0,
 "legenddecimals": 0,

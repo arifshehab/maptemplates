@@ -28,6 +28,7 @@ if(Modernizr.webgl) {
 		//console.log(Object.keys(data[0]));
 		for (var column in data[0]) {
 			if (column == 'AREACD') continue;
+			if (column == 'AREANM') continue;
 			variable = column;
 		}
 
@@ -187,7 +188,7 @@ if(Modernizr.webgl) {
 				  'source': 'area',
 				  'touchAction':'none',
 				  'layout': {},
-				  'maxzoom' : 15,
+				  //'maxzoom' : 15,
 				  'paint': {
 					  'fill-color': {
 							type: 'identity',
@@ -684,6 +685,8 @@ if(Modernizr.webgl) {
 					}
 			});
 	};//end selectlist
+	console.log('Checking if turf.simplify is used:', turf.simplify);
+
 }//end ready
 
 } else {

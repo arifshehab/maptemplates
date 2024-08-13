@@ -2013,52 +2013,6 @@
   }
 },
 {
-  "id": "admin-1-boundary",
-  "type": "line",
-  "metadata": {
-      "mapbox:featureComponent": "admin-boundaries",
-      "mapbox:group": "Administrative boundaries, admin"
-  },
-  "source": "composite",
-  "source-layer": "admin",
-  "minzoom": 2,
-  "filter": [
-      "all",
-      ["==", ["get", "admin_level"], 1],
-      ["==", ["get", "maritime"], "false"],
-      ["match", ["get", "worldview"], ["all", "US"], true, false]
-  ],
-  "layout": {},
-  "paint": {
-      "line-dasharray": [
-          "step",
-          ["zoom"],
-          ["literal", [2, 0]],
-          7,
-          ["literal", [2, 2, 6, 2]]
-      ],
-      "line-width": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          3,
-          0.3,
-          12,
-          1.5
-      ],
-      "line-opacity": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          2,
-          0,
-          3,
-          1
-      ],
-      "line-color": "hsl(220, 1%, 71%)"
-  }
-},
-{
   "id": "admin-0-boundary",
   "type": "line",
   "metadata": {
