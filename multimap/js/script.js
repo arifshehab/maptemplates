@@ -8,7 +8,7 @@ if(Modernizr.webgl) {
 
 	//Load data and config file
 	d3.queue()
-		.defer(d3.csv, "data/data.csv")
+		.defer(d3.csv, "data/income_data.csv")
 		.defer(d3.json, "data/config.json")
 		.defer(d3.json, "data/geog.geojson")
 		.await(ready);
@@ -26,11 +26,9 @@ if(Modernizr.webgl) {
 		variables = [];
 		for (var column in data[0]) {
 			if (column == 'AREACD') continue;
+			if (column == 'AREANM') continue;
 			variables.push(column);
 		}
-
-		console.log(variables);
-
 
 		a = dvc.varload;
 
@@ -61,7 +59,7 @@ if(Modernizr.webgl) {
 		  attributionControl: false //
 		});
 		//add fullscreen option
-		//map.addControl(new mapboxgl.FullscreenControl());
+		map.addControl(new mapboxgl.FullscreenControl());
 
 		// Add zoom and rotation controls to the map.
 		map.addControl(new mapboxgl.NavigationControl());
@@ -229,7 +227,7 @@ if(Modernizr.webgl) {
 			};
 
 			console.log(values);
-
+			
 			if(config.ons.breaks[a] =="jenks") {
 				breaks = [];
 
@@ -250,11 +248,31 @@ if(Modernizr.webgl) {
 			}
 			else {breaks = config.ons.breaks[a];};
 
-			console.log(breaks);
-			//round breaks to specified decimal places
-			breaks = breaks.map(function(each_element){
-				return Number(each_element.toFixed(dvc.legenddecimals));
+			// Define a function to round down to the nearest decimal place
+			function roundDown(value, decimals) {
+				var factor = Math.pow(10, decimals);
+				return Math.floor(value * factor) / factor;
+			}
+		
+			// Define a function to round up to the nearest decimal place
+			function roundUp(value, decimals) {
+				var factor = Math.pow(10, decimals);
+				return Math.ceil(value * factor) / factor;
+			}
+		
+			// Rounding adjustments
+			breaks = breaks.map(function(each_element, index) {
+				if (index === 0) {
+					return roundDown(each_element, dvc.legenddecimals); // Round down for the first value
+				} else if (index === breaks.length - 1) {
+					return roundUp(each_element, dvc.legenddecimals); // Round up for the last value
+				} else {
+					return Number(each_element.toFixed(dvc.legenddecimals)); // Regular rounding for others
+				}
 			});
+
+			console.log(breaks);
+
 
 			//work out halfway point (for no data position)
 			midpoint = breaks[0] + ((breaks[dvc.numberBreaks[a]] - breaks[0])/2)
@@ -265,20 +283,14 @@ if(Modernizr.webgl) {
 		function setupScales() {
 			//set up d3 color scales
 			//Load colours
-			if(typeof dvc.varcolour[a] === 'string') {
-				color=chroma.scale(dvc.varcolour[a]).colors(dvc.numberBreaks[a])
-				colour=[]
-				color.forEach(function(d){colour.push(chroma(d).darken(0.4).saturate(0.6).hex())})
-				// colour = colorbrewer[dvc.varcolour[a]][dvc.numberBreaks];
-			} else {
-				colour = dvc.varcolour[a];
-			}
+			colour = dvc.varcolour[a];
 
 			//set up d3 color scales
 			color = d3.scaleThreshold()
 					.domain(breaks.slice(1))
 					.range(colour);
-
+			
+			//console.log(color.domain(), color.range(), color(15000));
 		}
 
 		function defineLayers() {
@@ -313,15 +325,14 @@ if(Modernizr.webgl) {
 				"filter": ["==", "AREACD", ""]
 			}, 'state-label');
 
-			  map.addLayer({
+			 /* map.addLayer({
 				  'id': 'area_labels',
 				  'type': 'symbol',
 				  'source': 'area',
-				  'minzoom': 10,
+				  'minzoom': 12,
 				  'layout': {
 					  "text-field": '{AREACD}',
-					  "text-font": ["Open Sans","Arial Unicode MS Regular"],
-					  "text-size": 16
+					  "text-size": 12
 				  },
 				  'paint': {
 					  "text-color": "#666",
@@ -329,7 +340,7 @@ if(Modernizr.webgl) {
 					  "text-halo-width": 1,
 					  "text-halo-blur": 1
 				  }
-			  });
+			  }); */
 
 
 			//test whether ie or not
@@ -385,7 +396,9 @@ if(Modernizr.webgl) {
 			//update properties to the geojson based on the csv file we've read in
 			areas.features.map(function(d,i) {
 			   if(!isNaN(rateById[d.properties.AREACD]))
-			    {d.properties.fill = color(rateById[d.properties.AREACD])}
+			    {d.properties.fill = color(rateById[d.properties.AREACD]);
+					console.log(d.properties.AREACD,d.properties);
+				}
 			   else {d.properties.fill = '#ccc'};
 
 			});
@@ -400,6 +413,8 @@ if(Modernizr.webgl) {
 						}
 			//repaint area layer map usign the styles above
 			map.setPaintProperty('area', 'fill-color', styleObject);
+
+			setMedianVal('Total');
 
 		}
 
@@ -449,7 +464,6 @@ if(Modernizr.webgl) {
 
 					selectArea(e.features[0].properties.AREACD);
 					setAxisVal(e.features[0].properties.AREACD);
-
 				}
 		};
 
@@ -552,15 +566,24 @@ if(Modernizr.webgl) {
 				.duration(400)
 				.attr("x", function(){if(!isNaN(rateById[code])) {return x(rateById[code])} else{return x(midpoint)}});
 
-			//	d3.select("#currVal2")
-			//		.text(function(){if(!isNaN(rateById[code]))  {return displayformat(rateById[code])} else {return "Data unavailable"}})
-			//		.style("opacity",1)
-			//		.transition()
-			//		.duration(400)
-			//		.attr("x", "13px");
+		}
+
+		function setMedianVal (code) {
+			
+			d3.select("#currLine2")
+				.style("opacity", function(){if(!isNaN(rateById[code])) {return 1} else{return 0}})
+				.transition()
+				.duration(400)
+				.attr("x1", function(){if(!isNaN(rateById[code])) {return x(rateById[code])} else{return x(midpoint)}})
+				.attr("x2", function(){if(!isNaN(rateById[code])) {return x(rateById[code])} else{return x(midpoint)}});
 
 
-
+			d3.select("#currVal2")
+				.text(function(){if(!isNaN(rateById[code]))  {return 'National Average: ' + displayformat(rateById[code])} else {return "Data unavailable"}})
+				.style("opacity",1)
+				.transition()
+				.duration(400)
+				.attr("x", function(){if(!isNaN(rateById[code])) {return x(rateById[code])} else{return x(midpoint)}});
 		}
 
 		function hideaxisVal() {
@@ -571,13 +594,19 @@ if(Modernizr.webgl) {
 				.style("opacity",0)
 		}
 
+		function hideMedianVal() {
+			d3.select("#currLine2")
+				.style("opacity",0)
+
+			d3.select("#currVal2").text("")
+				.style("opacity",0)
+		}
+
 		function createKey(config){
 
 			d3.select("#keydiv").selectAll("*").remove();
 
-			keywidth1 = d3.select("#keydiv").node().getBoundingClientRect().width;
-			var keywidth = keywidth1+10
-
+			keywidth = d3.select("#keydiv").node().getBoundingClientRect().width;
 
 			var svgkey = d3.select("#keydiv")
 				.append("svg")
@@ -595,14 +624,12 @@ if(Modernizr.webgl) {
 			x = d3.scaleLinear()
 				.domain([breaks[0], breaks[dvc.numberBreaks[a]]]) /*range for data*/
 				.range([0,keywidth-50]); /*range for pixels*/
-
-
+			
 			var xAxis = d3.axisBottom(x)
 				.tickSize(14)
 				.tickValues(color.domain())
-				.tickFormat(formatPercent);
-
-
+				.tickFormat(d => d);
+			
 			var g2 = svgkey.append("g").attr("id","horiz")
 				.attr("transform", "translate(15,35)");
 
@@ -639,12 +666,30 @@ if(Modernizr.webgl) {
 				.attr("stroke","#000")
 				.attr("opacity",0);
 
+			g2.append("line")
+				.attr("id", "currLine2")
+				.attr("x1", x(10))
+				.attr("x2", x(10))
+				.attr("y1", -5)
+				.attr("y2", 24)
+				.attr("stroke-width","4px")
+				.attr("stroke","#000")
+				.attr("opacity",0);
+
 			g2.append("text")
 				.attr("id", "currVal")
 				.attr("x", x(10))
 				.attr("y", -10)
 				.attr("fill","#000")
 				.text("");
+
+			g2.append("text")
+				.attr("id", "currVal2")
+				.attr("x", x(10))
+				.attr("y", 40)
+				.attr("fill","#000")
+				.text("")
+				.style('font-size','14px');
 
 				// g2.append("text")
 				// 	.attr("id", "currVal2")
@@ -710,14 +755,6 @@ if(Modernizr.webgl) {
 			}
 
 
-			//if(dvc.dropticks) {
-			//	d3.select("#horiz").selectAll("line").style("stroke",function(d,i){
-						// if there are more that 4 breaks, so > 5 ticks, then drop every other.
-		//				if(i % 2){return "red"} }
-		//		);
-		//	}
-
-
 			if(dvc.dropticks) {
 				d3.select("#horiz").selectAll("line").attr("transform",function(d,i){
 						// if there are more that 4 breaks, so > 5 ticks, then drop every other.
@@ -727,8 +764,9 @@ if(Modernizr.webgl) {
 
 			//label the units
 			d3.select("#keydiv").append("p").attr("id","keyunit").attr('aria-hidden',true)
-			.style("margin-top","-12px").style("margin-left","10px")
-			.style('font-size','14px').text(dvc.varunit[a]);
+			.style("margin-top","0px").style("margin-left","10px")
+			.style('font-size','14px').style('text-align','center')
+			.text(dvc.varunit[a]);
 
 
 			d3.select("#key").attr("class","c2")
@@ -736,7 +774,7 @@ if(Modernizr.webgl) {
 			if(dvc.dropticks) {
 				d3.select("#keyunit").style("margin-top","-8px")
 
-d3.select("#key").attr("class","c1")
+			d3.select("#key").attr("class","c1")
 				}
 				// d3.selectAll("#horiz")
 
@@ -827,75 +865,67 @@ d3.select("#key").attr("class","c1")
 
 	  selectArea(features[0].properties.AREACD);
 	  setAxisVal(features[0].properties.AREACD);
-
-
 	};
 
-		function selectlist(datacsv) {
+	function selectlist(datacsv) {
 
-			var areacodes =  datacsv.map(function(d) { return d.AREACD; });
-			var areanames =  datacsv.map(function(d) { return d.AREACD; });
-			var menuarea = d3.zip(areanames,areacodes).sort(function(a, b){ return d3.ascending(a[0], b[0]); });
+		var areacodes =  datacsv.map(function(d) { return d.AREACD; });
+		var areanames =  datacsv.map(function(d) { return d.AREACD; });
+		var menuarea = d3.zip(areanames,areacodes).sort(function(a, b){ return d3.ascending(a[0], b[0]); });
 
-			// Build option menu for occupations
-			var optns = d3.select("#selectNav").append("div").attr("id","sel").append("select")
-				.attr("id","areaselect")
-				.attr("style","width:calc(100% - 6px)")
-				.attr("class","chosen-select");
+		// Build option menu for occupations
+		var optns = d3.select("#selectNav").append("div").attr("id","sel").append("select")
+			.attr("id","areaselect")
+			.attr("style","width:calc(100% - 6px)")
+			.attr("class","chosen-select");
 
-			optns.append("option")
-				// .attr("value","first")
-				// .text("");
+		optns.append("option")
+			// .attr("value","first")
+			// .text("");
 
-			optns.selectAll("p").data(menuarea).enter().append("option")
-				.attr("value", function(d){ return d[1]})
-				.attr("id",function(d){return d[1]})
-				.text(function(d){ return d[0]});
+		optns.selectAll("p").data(menuarea).enter().append("option")
+			.attr("value", function(d){ return d[1]})
+			.attr("id",function(d){return d[1]})
+			.text(function(d){ return d[0]});
 
-			myId=null;
+		myId=null;
 
-			 $('#areaselect').chosen({placeholder_text_single:"Select an area",allow_single_deselect:true})
+			$('#areaselect').chosen({placeholder_text_single:"Select an area",allow_single_deselect:true})
 
-			 d3.select('input.chosen-search-input').attr('id','chosensearchinput')
-	     d3.select('div.chosen-search').insert('label','input.chosen-search-input').attr('class','visuallyhidden').attr('for','chosensearchinput').html("Type to select an area")
+			d3.select('input.chosen-search-input').attr('id','chosensearchinput')
+		d3.select('div.chosen-search').insert('label','input.chosen-search-input').attr('class','visuallyhidden').attr('for','chosensearchinput').html("Type to select an area")
 
-			$('#areaselect').on('change',function(){
+		$('#areaselect').on('change',function(){
 
-					if($('#areaselect').val() != "") {
-							areacode = $('#areaselect').val()
+				if($('#areaselect').val() != "") {
+						areacode = $('#areaselect').val()
 
-							disableMouseEvents();
+						disableMouseEvents();
 
-							map.setFilter("state-fills-hover", ["==", "AREACD", areacode]);
+						map.setFilter("state-fills-hover", ["==", "AREACD", areacode]);
 
-							selectArea(areacode);
-							setAxisVal(areacode);
-							zoomToArea(areacode);
+						selectArea(areacode);
+						setAxisVal(areacode);
+						zoomToArea(areacode);
 
-							dataLayer.push({
-                  'event': 'mapDropSelect',
-                  'selected': areacode
-              })
-					}
-					else {
-							dataLayer.push({
-									'event': 'deselectCross',
-									'selected': 'deselect'
-							})
+						dataLayer.push({
+				'event': 'mapDropSelect',
+				'selected': areacode
+			})
+				}
+				else {
+						dataLayer.push({
+								'event': 'deselectCross',
+								'selected': 'deselect'
+						})
 
-							enableMouseEvents();
-							hideaxisVal();
-							onLeave();
-							resetZoom();
-					}
-			});
+						enableMouseEvents();
+						hideaxisVal();
+						onLeave();
+						resetZoom();
+				}
+		});
 	};//end selectlist
 }//end ready
-
-} else {
-
-	//provide fallback for browsers that don't support webGL
-	d3.select('#map').remove();
-	d3.select('body').append('p').html("Unfortunately your browser does not support WebGL. <a href='https://www.gov.uk/help/browsers' target='_blank>'>If you're able to please upgrade to a modern browser</a>")
 
 }

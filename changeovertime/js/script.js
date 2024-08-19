@@ -1,5 +1,5 @@
 //test if browser supports webGL
-
+mapboxgl.accessToken = 'pk.eyJ1IjoiYXJpZnNoZWhhYiIsImEiOiJjbHl5YTgxd3YyYmlrMmpvaWx6NnR5cHBxIn0.Lyquz6Fn-AxZX9p9q9BS6Q';
 if (Modernizr.webgl) {
 
   //setup pymjs
@@ -357,13 +357,7 @@ if (Modernizr.webgl) {
           'fill-opacity': 0.7,
           'fill-outline-color': '#fff'
         }
-      }, 'place_city');
-
-
-      //Get current year for copyright
-      today = new Date();
-      copyYear = today.getFullYear();
-      map.style.sourceCaches['area']._source.attribution = "Contains OS data &copy; Crown copyright and database right " + copyYear;
+      }, 'country-label');
 
       map.addLayer({
         "id": "state-fills-hover",
@@ -375,27 +369,7 @@ if (Modernizr.webgl) {
           "line-width": 2
         },
         "filter": ["==", "AREACD", ""]
-      }, 'place_city');
-
-
-      map.addLayer({
-        'id': 'area_labels',
-        'type': 'symbol',
-        'source': 'area',
-        'minzoom': 10,
-        'layout': {
-          "text-field": '{AREANM}',
-          "text-font": ["Open Sans", "Arial Unicode MS Regular"],
-          "text-size": 14
-        },
-        'paint': {
-          "text-color": "#666",
-          "text-halo-color": "#fff",
-          "text-halo-width": 1,
-          "text-halo-blur": 1
-        }
-      });
-
+      }, 'country-label');
 
       //test whether ie or not
       function detectIE() {

@@ -211,15 +211,14 @@ if(Modernizr.webgl) {
 				"filter": ["==", "AREACD", ""]
 			}, 'settlement-major-label');
 
-			  map.addLayer({
+			 /* map.addLayer({
 				  'id': 'area_labels',
 				  'type': 'symbol',
 				  'source': 'area',
-				  'minzoom': 10,
+				  'minzoom': 15,
 				  'layout': {
 					  "text-field": '{AREACD}',
-					  "text-font": ["Open Sans","Arial Unicode MS Regular"],
-					  "text-size": 14
+					  "text-size": 12
 				  },
 				  'paint': {
 					  "text-color": "#666",
@@ -227,7 +226,7 @@ if(Modernizr.webgl) {
 					  "text-halo-width": 1,
 					  "text-halo-blur": 1
 				  }
-			  });
+			  });*/
 
 
 			//test whether ie or not
@@ -338,7 +337,6 @@ if(Modernizr.webgl) {
 
 					selectArea(e.features[0].properties.AREACD);
 					setAxisVal(e.features[0].properties.AREACD);
-					console.log("z");
 				}
 		};
 
@@ -685,7 +683,6 @@ if(Modernizr.webgl) {
 					}
 			});
 	};//end selectlist
-	console.log('Checking if turf.simplify is used:', turf.simplify);
 
 }//end ready
 

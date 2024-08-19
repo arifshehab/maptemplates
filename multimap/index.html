@@ -151,9 +151,11 @@
 
     @media (min-width: 600px) {
       #map {
+        position: relative; /* Make sure map is positioned relative to contain its children */
         height: 500px;
         width: 100%;
         max-width: 800px;
+        overflow: hidden; /* Ensure that the content does not overflow */
       }
 
       .c1{background-color: "orange"}
@@ -174,13 +176,14 @@
       }
 
       #keydiv {
-        position: absolute;
-        top: 45px;
-        left: 0px;
-        width: calc(30% + 3px);
-        height: 100px;
-        background-color: rgba(255, 255, 255, 0.8);
-        z-index: 1;
+        position: absolute; /* Use absolute positioning within the relative #map */
+        bottom: 0; /* Align it to the bottom */
+        left: 0; /* Align it to the left */
+        width: 100%; /* Ensure it spans the full width */
+        background-color: rgba(255, 255, 255, 0.8); /* Optional: add background color */
+        z-index: 1; /* Ensure it appears above other elements */
+        padding: 10px; /* Optional: add some padding */
+        box-sizing: border-box; /* Include padding and border in element's total width and height */
       }
 
 
@@ -620,25 +623,21 @@ cursor: pointer;
   </noscript>
 
   <div class="row">
-    <div id='nav' class="col-sm-12">
-    </div>
-    <div id='selectnav' class="col-xs-12">
-    </div>
+    <div id='nav' class="col-sm-12"></div>
+    <div id='selectnav' class="col-xs-12"></div>
   </div>
   <div class="row">
     <div id='map' class="col-sm-12">
-      <div id='keydiv'></div>
-      <div id='selectNav'></div>
       <div id='accessibilityInfo'>
         <p aria-live="polite" class='visuallyhidden'>Age structure of the population, 2021, local authorities in Wales.</p>
       </div>
+      <div id='keydiv'></div>
+      <div id='selectNav'></div>
     </div>
   </div>
-  <div class="row" id="source">Source: Office for National Statistics - Census 2021</div>
 
+  <!--<script src="http://d3js.org/d3.v3.min.js"></script>-->
 
-  <!--<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://d3js.org/topojson.v1.min.js"></script>-->
 
   <script src="https://cdn.ons.gov.uk/vendor/d3/4.2.7/d3.min.js"></script>
   <script src="js/topojson.v2.min.js"></script>
