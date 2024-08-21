@@ -68,7 +68,7 @@ if(Modernizr.webgl) {
 		map.dragRotate.disable();
 
 		// Disable map rotation using touch rotation gesture
-		map.touchZoomRotate.disableRotation();
+		//map.touchZoomRotate.disableRotation();
 
 		// Add geolocation controls to the map.
 		map.addControl(new mapboxgl.GeolocateControl({
@@ -116,10 +116,10 @@ if(Modernizr.webgl) {
 
 		map.on('load', defineLayers);
 
-		if ($('html').hasClass('touch')) {
-			map.scrollZoom.disable();
-			map.dragPan.disable();
-		};
+		//if ($('html').hasClass('touch')) {
+			//map.scrollZoom.disable();
+			//map.dragPan.disable();
+		//};
 
 		function buildNav() {
 
@@ -225,8 +225,6 @@ if(Modernizr.webgl) {
 			if(config.ons.breaks[a] =="jenks" || config.ons.breaks[a] =="equal") {
 				var values =  data.map(function(d) { return +d[variables[a]]; }).filter(function(d) {return !isNaN(d)}).sort(d3.ascending);
 			};
-
-			console.log(values);
 			
 			if(config.ons.breaks[a] =="jenks") {
 				breaks = [];
@@ -270,9 +268,6 @@ if(Modernizr.webgl) {
 					return Number(each_element.toFixed(dvc.legenddecimals)); // Regular rounding for others
 				}
 			});
-
-			console.log(breaks);
-
 
 			//work out halfway point (for no data position)
 			midpoint = breaks[0] + ((breaks[dvc.numberBreaks[a]] - breaks[0])/2)
@@ -396,9 +391,7 @@ if(Modernizr.webgl) {
 			//update properties to the geojson based on the csv file we've read in
 			areas.features.map(function(d,i) {
 			   if(!isNaN(rateById[d.properties.AREACD]))
-			    {d.properties.fill = color(rateById[d.properties.AREACD]);
-					console.log(d.properties.AREACD,d.properties);
-				}
+			    {d.properties.fill = color(rateById[d.properties.AREACD])}
 			   else {d.properties.fill = '#ccc'};
 
 			});
