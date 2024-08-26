@@ -59,7 +59,7 @@ if(Modernizr.webgl) {
 		  attributionControl: false //
 		});
 		//add fullscreen option
-		map.addControl(new mapboxgl.FullscreenControl());
+		//map.addControl(new mapboxgl.FullscreenControl());
 
 		// Add zoom and rotation controls to the map.
 		map.addControl(new mapboxgl.NavigationControl());
@@ -867,7 +867,7 @@ if(Modernizr.webgl) {
 		var menuarea = d3.zip(areanames,areacodes).sort(function(a, b){ return d3.ascending(a[0], b[0]); });
 
 		// Build option menu for occupations
-		var optns = d3.select("#selectNav").append("div").attr("id","sel").append("select")
+		var optns = d3.select("#selectArea").append("div").attr("id","sel").append("select")
 			.attr("id","areaselect")
 			.attr("style","width:calc(100% - 6px)")
 			.attr("class","chosen-select");
